@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "module": "es6",
+        "moduleResolution": "node",
+        "baseUrl": "src",
+        "outDir": "dist",
+        "sourceMap": true,
+        "noImplicitAny": true,
+        "allowSyntheticDefaultImports": true,
+        "strictNullChecks": true,
+        "esModuleInterop": true,
+    },
+    "ts-node": {
+        "esm": true,
+    },
+    "include": ["src/**/*"],
+}
