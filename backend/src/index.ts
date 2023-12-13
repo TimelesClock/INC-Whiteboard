@@ -44,25 +44,25 @@ io.on('connection', (socket: Socket) => {
     }
 
     try {
-      const { added, updated, removed } = update.changes;
+      // const { added, updated, removed } = update.changes;
 
       // Merge the update into the room's state
       //Remind me to remove this shit and make it take from db instead
-      if (added?.length) {
-        added.forEach(record => {
-          roomsState[roomId][record.id] = record;
-        });
-      }
-      if (updated?.length) {
-        updated.forEach(([, to]) => {
-          roomsState[roomId][to.id] = to;
-        });
-      }
-      if (removed?.length) {
-        removed.forEach(record => {
-          delete roomsState[roomId][record.id];
-        });
-      }
+      // if (added?.length) {
+      //   added.forEach(record => {
+      //     roomsState[roomId][record.id] = record;
+      //   });
+      // }
+      // if (updated?.length) {
+      //   updated.forEach(([, to]) => {
+      //     roomsState[roomId][to.id] = to;
+      //   });
+      // }
+      // if (removed?.length) {
+      //   removed.forEach(record => {
+      //     delete roomsState[roomId][record.id];
+      //   });
+      // }
 
 
       // Broadcast the changes to all other clients in the room, except the sender

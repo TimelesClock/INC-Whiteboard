@@ -6,7 +6,9 @@ import {
     type TLStoreWithStatus,
     createTLStore,
     defaultShapeUtils,
+    throttle,
 } from '@tldraw/tldraw'
+import { api } from '@/trpc/react'
 
 interface SocketIOStoreOptions {
     userId: string
@@ -15,10 +17,16 @@ interface SocketIOStoreOptions {
 }
 
 export function useSocketIOStore({ userId, roomId, server }: SocketIOStoreOptions) {
+    const { data: whiteboard, isLoading } = api.whiteboard.get.useQuery({ id: roomId });
+
+
     const [store] = useState(() => {
         const store = createTLStore({
             shapeUtils: [...defaultShapeUtils],
         })
+        if (whiteboard) {
+            store.loadSnapshot(whiteboard.content)
+        }
         return store
     })
 
@@ -33,6 +41,9 @@ export function useSocketIOStore({ userId, roomId, server }: SocketIOStoreOption
     }, [server, roomId, userId])
 
     useEffect(() => {
+
+
+
         setStoreWithStatus({ status: 'loading' })
 
         const handleConnect = () => {
@@ -53,10 +64,7 @@ export function useSocketIOStore({ userId, roomId, server }: SocketIOStoreOption
                 if (data.clientId === socket.id) return
 
                 switch (data.type) {
-                    case 'init':
-                    case 'recovery':
-                        store.loadSnapshot(data.snapshot)
-                        break
+
                     case 'update':
                         store.mergeRemoteChanges(() => {
                             const { changes: { added, updated, removed } } = data.update as HistoryEntry<TLRecord>
@@ -87,10 +95,19 @@ export function useSocketIOStore({ userId, roomId, server }: SocketIOStoreOption
             })
         })
 
+        const pendingChanges:HistoryEntry<TLRecord>[] = []
+        const sendChanges = throttle(() => {
+            if (pendingChanges.length === 0) return
+
+                socket.emit('update', { clientId: socket.id, type: 'update', update: pendingChanges[0], roomId });
+
+            pendingChanges.length = 0
+        },50)
+
         store.listen((event) => {
             if (event.source !== 'user') return
-            console.log(event.source)
-            socket.emit('update', { clientId: socket.id, type: 'update', update: event, roomId })
+            pendingChanges.push(event)
+            sendChanges()
         }, {
             source: 'user',
             scope: 'document',

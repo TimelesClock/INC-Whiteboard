@@ -6,8 +6,8 @@ import {
 } from "next-auth";
 import DiscordProvider from "next-auth/providers/discord";
 
-import { env } from "~/env";
-import { db } from "~/server/db";
+import { env } from "@/env";
+import { db } from "@/server/db";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`

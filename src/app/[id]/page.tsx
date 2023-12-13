@@ -1,4 +1,4 @@
-import { TLDrawComponent } from "~/app/_components/tldraw";
+import { TLDrawComponent } from "@/app/_components/TLDraw";
 
 export default async function Page({ params }: { params: { id: string } }) {
 
