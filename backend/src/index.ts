@@ -20,6 +20,8 @@ const sslOptions = {
   cert: fs.readFileSync(certPath)
 };
 
+console.log(sslOptions);
+
 const httpServer = process.env.NODE_ENV === 'production'
   ? createHttpsServer(sslOptions, app)
   : createHttpServer(app);
