@@ -16,8 +16,22 @@ datasource db {
 
 model Whiteboard{
     id String @id @default(cuid())
-    name String
+    name String @unique
+    previewUrl String @default("")
     content Json @default("{}")
+    dateCreated DateTime @default(now())
+    dateUpdated DateTime @default(now())
+    snapshots WhiteboardSnapshot[]
+}
+
+model WhiteboardSnapshot{
+    id String @id @default(cuid())
+    name String
+    whiteboardId String
+    previewUrl String
+    content Json @default("{}")
+    dateCreated DateTime @default(now())
+    whiteboard Whiteboard @relation(fields: [whiteboardId], references: [id], onDelete: Cascade)
 }
 
 // Necessary for Next auth

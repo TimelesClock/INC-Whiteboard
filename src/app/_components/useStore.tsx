@@ -7,25 +7,37 @@ import {
     createTLStore,
     defaultShapeUtils,
     throttle,
+    getUserPreferences,
+    setUserPreferences,
+    defaultUserPreferences,
+    createPresenceStateDerivation,
+    InstancePresenceRecordType,
+    computed,
+    react,
+    type StoreSnapshot,
+    TLInstancePresence
 } from '@tldraw/tldraw'
-import { api } from '@/trpc/react'
+
+import { type JsonObject } from '@prisma/client/runtime/library'
 
 interface SocketIOStoreOptions {
     userId: string
     roomId: string
+    userName: string
     server: string
+    whiteboard: JsonObject | null
 }
 
-export function useSocketIOStore({ userId, roomId, server }: SocketIOStoreOptions) {
-    const { data: whiteboard, isLoading } = api.whiteboard.get.useQuery({ id: roomId });
+export function useSocketIOStore({ userId, userName, roomId, server, whiteboard }: SocketIOStoreOptions) {
+
 
 
     const [store] = useState(() => {
         const store = createTLStore({
             shapeUtils: [...defaultShapeUtils],
         })
-        if (whiteboard) {
-            store.loadSnapshot(whiteboard.content)
+        if (whiteboard && whiteboard.content) {
+            store.loadSnapshot(whiteboard.content as unknown as StoreSnapshot<TLRecord>)
         }
         return store
     })
@@ -44,6 +56,47 @@ export function useSocketIOStore({ userId, roomId, server }: SocketIOStoreOption
 
 
 
+        setUserPreferences({ id: userId, name: userName });
+
+        const userPreferences = computed<{
+            id: string;
+            color: string;
+            name: string;
+        }>("userPreferences", () => {
+            const user = getUserPreferences();
+            return {
+                id: user.id,
+                color: user.color ?? defaultUserPreferences.color,
+                name: user.name ?? defaultUserPreferences.name,
+            };
+        });
+
+        const presenceId = InstancePresenceRecordType.createId(userId)
+        const presenceDerivation = createPresenceStateDerivation(userPreferences, presenceId)(store)
+        
+
+        react('when presence changes', () => {
+            const presence = presenceDerivation.value
+            const presenceArray:TLInstancePresence[] = []
+            requestAnimationFrame(() => {
+                if (!presence) return
+                presenceArray.push(presence)
+                throttle(() => {
+                    socket.emit('presence', { roomId, userId, presence: presenceArray[0] })
+                    presenceArray.length = 0
+                }, 50)()
+
+            })
+        })
+
+        socket.on('presence', (data: JsonObject) => {
+
+            store.mergeRemoteChanges(() => {
+                store.put([data.presence as unknown as TLRecord])
+            })
+        }
+        )
+
         setStoreWithStatus({ status: 'loading' })
 
         const handleConnect = () => {
@@ -59,7 +112,7 @@ export function useSocketIOStore({ userId, roomId, server }: SocketIOStoreOption
             socket.on('update', handleUpdate)
         }
 
-        const handleUpdate = (data) => {
+        const handleUpdate = (data: JsonObject) => {
             try {
                 if (data.clientId === socket.id) return
 
@@ -67,8 +120,7 @@ export function useSocketIOStore({ userId, roomId, server }: SocketIOStoreOption
 
                     case 'update':
                         store.mergeRemoteChanges(() => {
-                            const { changes: { added, updated, removed } } = data.update as HistoryEntry<TLRecord>
-
+                            const { changes: { added, updated, removed } } = data.update as unknown as HistoryEntry<TLRecord>
                             for (const record of Object.values(added)) {
                                 store.put([record])
                             }
@@ -95,14 +147,15 @@ export function useSocketIOStore({ userId, roomId, server }: SocketIOStoreOption
             })
         })
 
-        const pendingChanges:HistoryEntry<TLRecord>[] = []
+        const pendingChanges: HistoryEntry<TLRecord>[] = []
         const sendChanges = throttle(() => {
             if (pendingChanges.length === 0) return
-
-                socket.emit('update', { clientId: socket.id, type: 'update', update: pendingChanges[0], roomId });
+            pendingChanges.forEach((change) => {
+                socket.emit('update', { clientId: socket.id, type: 'update', update: change, roomId });
+            })
 
             pendingChanges.length = 0
-        },50)
+        }, 50)
 
         store.listen((event) => {
             if (event.source !== 'user') return

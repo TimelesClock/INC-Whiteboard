@@ -12,7 +12,7 @@ const io = new Server(httpServer, {
 });
 
 // Stores the state of each room, with records for each room
-const roomsState: Record<string, Record<string, TLRecord>> = {};
+const roomsState: Record<string, Record<string, unknown>> = {};
 
 io.on('connection', (socket: Socket) => {
   console.log(`connect ${socket.id}`);
@@ -34,7 +34,16 @@ io.on('connection', (socket: Socket) => {
     }
   });
 
-  socket.on('update', (data: { update: HistoryEntry<TLRecord>; roomId: string; clientId: string }) => {
+  socket.on('presence', (data: { roomId: string; userId: string; presence: unknown }) => {
+    const { roomId, userId, presence } = data;
+
+    socket.broadcast.to(roomId).emit('presence', { userId, presence });
+  }
+  )
+
+
+
+  socket.on('update', (data: { update: unknown; roomId: string; clientId: string }) => {
     const { update, roomId, clientId } = data;
     console.log(`Socket ${socket.id} sent update for room ${roomId}`);
 

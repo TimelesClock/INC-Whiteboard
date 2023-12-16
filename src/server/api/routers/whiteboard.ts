@@ -5,6 +5,10 @@ import {
   protectedProcedure,
   publicProcedure,
 } from "@/server/api/trpc";
+import { type JsonObject } from "@tldraw/tldraw";
+
+
+
 
 export const whiteboardRouter = createTRPCRouter({
 
@@ -36,12 +40,12 @@ export const whiteboardRouter = createTRPCRouter({
     }),
 
   update: publicProcedure
-    .input(z.object({ id: z.string(), content: z.any() }))
+    .input(z.object({ id: z.string(), content: z.unknown() }))
     .mutation(async ({ ctx, input }) => {
       return await ctx.db.whiteboard.update({
         where: { id: input.id },
         data: {
-          content: input.content
+          content: input.content as JsonObject
         },
       });
     }),
