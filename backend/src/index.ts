@@ -11,9 +11,6 @@ const io = new Server(httpServer, {
   },
 });
 
-// Stores the state of each room, with records for each room
-const roomsState: Record<string, Record<string, unknown>> = {};
-
 io.on('connection', (socket: Socket) => {
   console.log(`connect ${socket.id}`);
 
@@ -23,34 +20,30 @@ io.on('connection', (socket: Socket) => {
       await socket.join(roomId);
       console.log(`Socket ${socket.id} joined room ${roomId}`);
 
-      // Send the current state of the room to the newly joined client
-      if (roomsState[roomId]) {
-        socket.emit('update', { type: 'init', snapshot: { store: roomsState[roomId] } });
-      } else {
-        roomsState[roomId] = {}; // Initialize the room state if it doesn't exist
-      }
     } catch (error) {
       console.error(`Error joining room: ${error}`);
     }
   });
 
-  socket.on('presence', (data: { roomId: string; userId: string; presence: unknown }) => {
-    const { roomId, userId, presence } = data;
+  socket.on('presence', async (data: { roomId: string; userId: string; presence: unknown }) => {
+    try {
+      const { roomId, userId, presence } = data;
 
-    socket.broadcast.to(roomId).emit('presence', { userId, presence });
+      socket.broadcast.to(roomId).emit('presence', { userId, presence });
+    } catch (error) {
+      console.error(`Error updating presence: ${error}`);
+    }
+
   }
   )
 
 
 
-  socket.on('update', (data: { update: unknown; roomId: string; clientId: string }) => {
+  socket.on('update', async (data: { update: unknown; roomId: string; clientId: string }) => {
     const { update, roomId, clientId } = data;
-    console.log(`Socket ${socket.id} sent update for room ${roomId}`);
+    // console.log(`Socket ${socket.id} sent update for room ${roomId}`);
 
-    // Ensure room state is initialized
-    if (!roomsState[roomId]) {
-      roomsState[roomId] = {};
-    }
+
 
     try {
       // const { added, updated, removed } = update.changes;
@@ -79,20 +72,13 @@ io.on('connection', (socket: Socket) => {
     } catch (err) {
       console.error(err);
       // Send recovery snapshot to the sender
-      socket.emit('recovery', { snapshot: { store: roomsState[roomId] } });
+
     }
   });
 
   socket.on('disconnect', () => {
     console.log(`disconnect ${socket.id}`);
-    // Cleanup when a socket disconnects
-    Object.keys(roomsState).forEach(roomId => {
-      if (roomsState[roomId][socket.id]) {
-        delete roomsState[roomId][socket.id];
-        // Optionally, broadcast the change
-        io.to(roomId).emit('update', { type: 'recovery', snapshot: { store: roomsState[roomId] } });
-      }
-    });
+    //leave room
   });
 });
 
