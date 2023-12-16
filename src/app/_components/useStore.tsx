@@ -1,5 +1,6 @@
-import { useEffect, useState, useMemo } from 'react'
-import { io } from 'socket.io-client'
+import {useEffect, useState } from 'react'
+
+import useSocket from "@/app/utils/useSocket";
 import {
     type HistoryEntry,
     type TLRecord,
@@ -15,10 +16,11 @@ import {
     computed,
     react,
     type StoreSnapshot,
-    TLInstancePresence
+    type TLInstancePresence
 } from '@tldraw/tldraw'
 
 import { type JsonObject } from '@prisma/client/runtime/library'
+import {type Socket} from "socket.io-client";
 
 interface SocketIOStoreOptions {
     userId: string
@@ -29,8 +31,6 @@ interface SocketIOStoreOptions {
 }
 
 export function useSocketIOStore({ userId, userName, roomId, server, whiteboard }: SocketIOStoreOptions) {
-
-
 
     const [store] = useState(() => {
         const store = createTLStore({
@@ -46,15 +46,19 @@ export function useSocketIOStore({ userId, userName, roomId, server, whiteboard 
         status: 'loading',
     })
 
-    const socket = useMemo(() => {
-        return io(server, {
-            query: { roomId, userId },
-        })
-    }, [server, roomId, userId])
+    const [socket, setSocket] = useState<Socket | null>(null)
+    useEffect(()=>{
+        const socket = useSocket(server, roomId, userId)
+        setSocket(socket)
+        return () => {
+            socket?.disconnect()
+        }
+    },[server,roomId,userId])
+
 
     useEffect(() => {
-
-
+  
+        if (!socket) return
 
         setUserPreferences({ id: userId, name: userName });
 
@@ -73,11 +77,11 @@ export function useSocketIOStore({ userId, userName, roomId, server, whiteboard 
 
         const presenceId = InstancePresenceRecordType.createId(userId)
         const presenceDerivation = createPresenceStateDerivation(userPreferences, presenceId)(store)
-        
+
 
         react('when presence changes', () => {
             const presence = presenceDerivation.value
-            const presenceArray:TLInstancePresence[] = []
+            const presenceArray: TLInstancePresence[] = []
             requestAnimationFrame(() => {
                 if (!presence) return
                 presenceArray.push(presence)
@@ -116,23 +120,19 @@ export function useSocketIOStore({ userId, userName, roomId, server, whiteboard 
             try {
                 if (data.clientId === socket.id) return
 
-                switch (data.type) {
+                store.mergeRemoteChanges(() => {
+                    const { changes: { added, updated, removed } } = data.update as unknown as HistoryEntry<TLRecord>
+                    for (const record of Object.values(added)) {
+                        store.put([record])
+                    }
+                    for (const [, to] of Object.values(updated)) {
+                        store.put([to])
+                    }
+                    for (const record of Object.values(removed)) {
+                        store.remove([record.id])
+                    }
+                })
 
-                    case 'update':
-                        store.mergeRemoteChanges(() => {
-                            const { changes: { added, updated, removed } } = data.update as unknown as HistoryEntry<TLRecord>
-                            for (const record of Object.values(added)) {
-                                store.put([record])
-                            }
-                            for (const [, to] of Object.values(updated)) {
-                                store.put([to])
-                            }
-                            for (const record of Object.values(removed)) {
-                                store.remove([record.id])
-                            }
-                        })
-                        break
-                }
             } catch (e) {
                 console.error(e)
             }
@@ -170,8 +170,9 @@ export function useSocketIOStore({ userId, userName, roomId, server, whiteboard 
             socket.off('connect', handleConnect)
             socket.off('disconnect')
             socket.off('update', handleUpdate)
+            socket.off('presence')
         }
-    }, [socket, store])
+    }, [socket,store])
 
     return storeWithStatus
 }

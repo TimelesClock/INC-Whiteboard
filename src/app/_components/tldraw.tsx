@@ -3,8 +3,8 @@
 import { type JsonObject, Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 import { useSocketIOStore } from './useStore'
-import { api } from '@/trpc/react'
-import { toast } from 'react-hot-toast'
+// import { api } from '@/trpc/react'
+// import { toast } from 'react-hot-toast'
 
 interface TLDrawComponentOptions {
 	userId: string
@@ -14,29 +14,29 @@ interface TLDrawComponentOptions {
 
 export function TLDrawComponent({ roomId, userId, whiteboard }: TLDrawComponentOptions) {
 
-	const {mutate: updateWhiteboard} = api.whiteboard.update.useMutation();
+	// const {mutate: updateWhiteboard} = api.whiteboard.update.useMutation();
 
 	const store = useSocketIOStore({
 		userId: userId,
 		userName: userId,
 		roomId: roomId,
-		server: 'http://localhost:3001',
+		server: process.env.NEXT_PUBLIC_SOCKET_URL!,
 		whiteboard: whiteboard
 	})
 
-	const handleClick = () => {
-		const snapshot = store?.store?.getSnapshot()
-		updateWhiteboard({id: roomId, content:snapshot as unknown as JsonObject},{
-			onSuccess: () => {
-				toast.success("updateWhiteboard success")
-				console.log(snapshot)
-			},
-			onError: (error) => {
-				toast.error("updateWhiteboard error")
-				console.log(error)
-			}
-		});
-	}
+	// const handleClick = () => {
+	// 	const snapshot = store?.store?.getSnapshot()
+	// 	updateWhiteboard({id: roomId, content:snapshot as unknown as JsonObject},{
+	// 		onSuccess: () => {
+	// 			toast.success("updateWhiteboard success")
+	// 			console.log(snapshot)
+	// 		},
+	// 		onError: (error) => {
+	// 			toast.error("updateWhiteboard error")
+	// 			console.log(error)
+	// 		}
+	// 	});
+	// }
 
 	return (
 		<div style={{ position: 'fixed', inset: 0 }}>
