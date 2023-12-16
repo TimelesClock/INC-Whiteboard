@@ -10,8 +10,8 @@ const app = express();
 
 const currentDir = process.cwd();
 
-const keyPath = path.join(currentDir, 'path', 'to', 'server.key');
-const certPath = path.join(currentDir, 'path', 'to', 'server.crt');
+const keyPath = path.join(currentDir, 'server.key');
+const certPath = path.join(currentDir, 'server.crt');
 
 const sslOptions = {
   key: fs.readFileSync(keyPath),
