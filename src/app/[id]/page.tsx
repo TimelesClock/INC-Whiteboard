@@ -1,4 +1,4 @@
-import { TLDrawComponent } from "@/app/_components/TLDraw";
+import { TLDrawComponent } from "@/app/_components/TLDrawComponent";
 import { db } from "@/server/db";
 import { type JsonObject } from "@tldraw/tldraw";
 
