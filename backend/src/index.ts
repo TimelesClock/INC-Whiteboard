@@ -1,10 +1,19 @@
 import express from 'express';
-import { createServer } from 'http';
+import { createServer as createHttpServer } from 'http';
+import { createServer as createHttpsServer } from 'https';
 import { Server, type Socket } from 'socket.io';
 
 
 const app = express();
-const httpServer = createServer(app);
+const sslOptions = {
+  key: fs.readFileSync('../server.key'),
+  cert: fs.readFileSync('../server.crt')
+};
+
+
+const httpServer = process.env.NODE_ENV === 'production'
+  ? createHttpsServer(sslOptions, app)
+  : createHttpServer(app);
 const io = new Server(httpServer, {
   cors: {
     origin: "*",
