@@ -3,12 +3,14 @@ import { createServer as createHttpServer } from 'http';
 import { createServer as createHttpsServer } from 'https';
 import { Server, type Socket } from 'socket.io';
 import fs from 'fs';
-
+import path from 'path';
 
 const app = express();
+
+
 const sslOptions = {
-  key: fs.readFileSync('../server.key'),
-  cert: fs.readFileSync('../server.crt')
+  key: fs.readFileSync(path.join(__dirname, '../server.key')),
+  cert: fs.readFileSync(path.join(__dirname, '../server.crt'))
 };
 
 
