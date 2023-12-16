@@ -5,14 +5,18 @@ import { Server, type Socket } from 'socket.io';
 import fs from 'fs';
 import path from 'path';
 
+
 const app = express();
 
+const currentDir = process.cwd();
+
+const keyPath = path.join(currentDir, 'path', 'to', 'server.key');
+const certPath = path.join(currentDir, 'path', 'to', 'server.crt');
 
 const sslOptions = {
-  key: fs.readFileSync(path.join(__dirname, '../server.key')),
-  cert: fs.readFileSync(path.join(__dirname, '../server.crt'))
+  key: fs.readFileSync(keyPath),
+  cert: fs.readFileSync(certPath)
 };
-
 
 const httpServer = process.env.NODE_ENV === 'production'
   ? createHttpsServer(sslOptions, app)
