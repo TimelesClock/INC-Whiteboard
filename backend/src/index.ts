@@ -1,5 +1,5 @@
 import express from 'express';
-import { createServer as createHttpServer } from 'http';
+// import { createServer as createHttpServer } from 'http';
 import { createServer as createHttpsServer } from 'https';
 import { Server, type Socket } from 'socket.io';
 import fs from 'fs';
@@ -22,9 +22,7 @@ const sslOptions = {
 
 console.log(sslOptions);
 
-const httpServer = process.env.NODE_ENV === 'production'
-  ? createHttpsServer(sslOptions, app)
-  : createHttpServer(app);
+const httpServer = createHttpsServer(sslOptions, app)
 const io = new Server(httpServer, {
   cors: {
     origin: "*",
