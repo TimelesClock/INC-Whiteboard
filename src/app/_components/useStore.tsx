@@ -36,7 +36,7 @@ export function useSocketIOStore({ userId, userName, roomId, server, whiteboard 
         const store = createTLStore({
             shapeUtils: [...defaultShapeUtils],
         })
-        if (whiteboard && whiteboard.content) {
+        if (whiteboard && whiteboard.content && whiteboard.schema) {
             store.loadSnapshot(whiteboard.content as unknown as StoreSnapshot<TLRecord>)
         }
         return store

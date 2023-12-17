@@ -1,5 +1,5 @@
 import express from 'express';
-// import { createServer as createHttpServer } from 'http';
+import { createServer as createHttpServer } from 'http';
 import { createServer as createHttpsServer } from 'https';
 import { Server, type Socket } from 'socket.io';
 import fs from 'fs';
@@ -12,17 +12,19 @@ const currentDir = process.cwd();
 
 const keyPath = path.join(currentDir, 'server.key');
 const certPath = path.join(currentDir, 'server.crt');
+let httpServer
+try {
+  httpServer = createHttpsServer({
+    key: fs.readFileSync(keyPath),
+    cert: fs.readFileSync(certPath)
+  }, app)
+} catch (error) {
+  httpServer = createHttpServer(app);
+}
 
-console.log(keyPath, certPath);
 
-const sslOptions = {
-  key: fs.readFileSync(keyPath),
-  cert: fs.readFileSync(certPath)
-};
 
-console.log(sslOptions);
 
-const httpServer = createHttpsServer(sslOptions, app)
 const io = new Server(httpServer, {
   cors: {
     origin: "*",
