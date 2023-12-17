@@ -3,6 +3,8 @@
 import { type JsonObject, Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 import { useSocketIOStore } from './useStore'
+import { getAssetUrls } from '@tldraw/assets/selfHosted'
+
 // import { api } from '@/trpc/react'
 // import { toast } from 'react-hot-toast'
 
@@ -15,6 +17,9 @@ interface TLDrawComponentOptions {
 export function TLDrawComponent({ roomId, userId, whiteboard }: TLDrawComponentOptions) {
 
 	// const {mutate: updateWhiteboard} = api.whiteboard.update.useMutation();
+
+	const assetUrls = getAssetUrls()
+
 
 	const store = useSocketIOStore({
 		userId: userId,
@@ -43,7 +48,7 @@ export function TLDrawComponent({ roomId, userId, whiteboard }: TLDrawComponentO
 			{/* <div onClick={handleClick} className="cursor-pointer inline-flex justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
 				Save
 			</div> */}
-			<Tldraw store={store} />
+			<Tldraw store={store} assetUrls={assetUrls} />
 		</div>
 	)
 }
