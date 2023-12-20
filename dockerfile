@@ -1,0 +1,21 @@
+# Step 1: Use a base image with Node.js
+FROM node:18.3.0-alpine3.14
+
+# Step 2: Set the working directory inside the container
+WORKDIR /usr/src/app
+
+# Step 3: Copy package.json and package-lock.json (if available)
+COPY package*.json ./
+
+# Step 4: Install dependencies
+RUN npm install
+
+# Step 5: Copy the source code into the container
+COPY . .
+
+
+# Step 7: Expose the port the app runs on
+EXPOSE 5000
+
+# Step 8: Define the command to run the app
+CMD ["node", "server.js"]
