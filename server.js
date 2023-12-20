@@ -1,11 +1,19 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const shell = require('shelljs');
+const https = require('https');
+const fs = require('fs');
 
 const app = express();
-const port = 5000; // You can choose any port that is free on your system
+const port = 5000; // HTTPS port
 
 app.use(bodyParser.json()); // For parsing application/json
+
+// Read the SSL certificate and private key
+const privateKey = fs.readFileSync('server.key', 'utf8');
+const certificate = fs.readFileSync('server.crt', 'utf8');
+
+const credentials = { key: privateKey, cert: certificate };
 
 // Endpoint to receive webhooks from GitHub
 app.post('/deploy', (req, res) => {
@@ -16,6 +24,7 @@ app.post('/deploy', (req, res) => {
     // The deployment script
     try {
         console.log('Deployment started...');
+        shell.exec("cd /home/ubuntu/INC-TLDraw-Socket/backend")
         shell.exec('git pull origin main');
         shell.exec('sudo docker build -t inc-whiteboard-socket .');
         shell.exec('sudo docker run -d -p 3001:3001 inc-tldraw-socket');
@@ -27,6 +36,10 @@ app.post('/deploy', (req, res) => {
     }
 });
 
-app.listen(port, () => {
-    console.log(`Server is listening on port ${port}`);
+// Create HTTPS server
+const httpsServer = https.createServer(credentials, app);
+
+httpsServer.listen(port, () => {
+    console.log(`HTTPS Server is listening on port ${port}`);
 });
+
