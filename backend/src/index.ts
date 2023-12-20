@@ -57,7 +57,16 @@ io.on('connection', (socket: Socket) => {
   }
   )
 
+  socket.on('test', async (data: { roomId: string; userId: string; }) => {
+    try {
+      const { roomId, userId, } = data;
 
+      socket.broadcast.to(roomId).emit('test', { userId, test:"oi" });
+    } catch (error) {
+      console.error(`Error updating presence: ${error}`);
+    }
+
+  })
 
   socket.on('update', async (data: { update: unknown; roomId: string; clientId: string }) => {
     const { update, roomId, clientId } = data;

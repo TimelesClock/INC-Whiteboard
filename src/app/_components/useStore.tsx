@@ -86,7 +86,11 @@ export function useSocketIOStore({ userId, userName, roomId, server, whiteboard 
                 if (!presence) return
                 presenceArray.push(presence)
                 throttle(() => {
-                    socket.emit('presence', { roomId, userId, presence: presenceArray[0] })
+
+                    presenceArray.forEach((presence) => {
+                        socket.emit('presence', { roomId, userId, presence })
+                    })
+                    socket.emit('test', { roomId, userId })
                     presenceArray.length = 0
                 }, 50)()
 
@@ -115,6 +119,10 @@ export function useSocketIOStore({ userId, userName, roomId, server, whiteboard 
 
             socket.on('update', handleUpdate)
         }
+
+        socket.on('test', (data: JsonObject) => {
+            console.log(data)
+        })
 
         const handleUpdate = (data: JsonObject) => {
             try {
