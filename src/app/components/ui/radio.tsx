@@ -53,7 +53,7 @@ export function RadioField({ className, ...props }: HeadlessFieldProps) {
   )
 }
 
-let base = [
+const base = [
   // Basic layout
   'relative isolate flex size-[1.1875rem] shrink-0 rounded-full sm:size-[1.0625rem]',
 
@@ -92,7 +92,7 @@ let base = [
   'dark:group-data-[disabled]:border-white/20 dark:group-data-[disabled]:bg-white/[2.5%] dark:group-data-[disabled]:[--radio-checked-indicator:theme(colors.white/50%)] dark:group-data-[disabled]:group-data-[checked]:after:hidden',
 ]
 
-let colors = {
+const colors = {
   'dark/zinc': [
     '[--radio-checked-bg:theme(colors.zinc.900)] [--radio-checked-border:theme(colors.zinc.950/90%)] [--radio-checked-indicator:theme(colors.white)]',
     'dark:[--radio-checked-bg:theme(colors.zinc.600)]',

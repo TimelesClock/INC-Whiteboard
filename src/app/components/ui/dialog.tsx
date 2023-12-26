@@ -8,7 +8,7 @@ import {
   type DialogProps as HeadlessDialogProps,
 } from '@headlessui/react'
 import clsx from 'clsx'
-import type React from 'react'
+import React from 'react'
 import { Fragment } from 'react'
 import { Text } from './text'
 

@@ -5,7 +5,7 @@ import {
   type FieldProps as HeadlessFieldProps,
 } from '@headlessui/react'
 import { clsx } from 'clsx'
-import type React from 'react'
+import React from 'react'
 
 export function CheckboxGroup({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
   return (
@@ -52,7 +52,7 @@ export function CheckboxField({ className, ...props }: HeadlessFieldProps) {
   )
 }
 
-let base = [
+const base = [
   // Basic layout
   'relative isolate flex size-[1.125rem] items-center justify-center rounded-[0.3125rem] sm:size-4',
 
@@ -89,7 +89,7 @@ let base = [
   'dark:forced-colors:[--checkbox-check:HighlightText] dark:forced-colors:[--checkbox-checked-bg:Highlight] dark:forced-colors:group-data-[disabled]:[--checkbox-check:Highlight]',
 ]
 
-let colors = {
+const colors = {
   'dark/zinc': [
     '[--checkbox-check:theme(colors.white)] [--checkbox-checked-bg:theme(colors.zinc.900)] [--checkbox-checked-border:theme(colors.zinc.950/90%)]',
     'dark:[--checkbox-checked-bg:theme(colors.zinc.600)]',

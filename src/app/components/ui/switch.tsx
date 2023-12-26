@@ -5,7 +5,7 @@ import {
   type SwitchProps as HeadlessSwitchProps,
 } from '@headlessui/react'
 import { clsx } from 'clsx'
-import type React from 'react'
+import React from 'react'
 
 export function SwitchGroup({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
   return (
@@ -52,7 +52,7 @@ export function SwitchField({ className, ...props }: HeadlessFieldProps) {
   )
 }
 
-let colors = {
+const colors = {
   'dark/zinc': [
     '[--switch-bg-ring:theme(colors.zinc.950/90%)] [--switch-bg:theme(colors.zinc.900)] dark:[--switch-bg-ring:theme(colors.zinc.700/90%)] dark:[--switch-bg-ring:transparent] dark:[--switch-bg:theme(colors.white/25%)]',
     '[--switch-ring:theme(colors.zinc.950/90%)] [--switch-shadow:theme(colors.black/10%)] [--switch:white] dark:[--switch-ring:theme(colors.zinc.700/90%)]',
@@ -148,6 +148,7 @@ type Color = keyof typeof colors
 export function Switch({
   color = 'dark/zinc',
   className,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   children,
   ...props
 }: {

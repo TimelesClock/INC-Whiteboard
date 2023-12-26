@@ -2,13 +2,13 @@ import { Input as HeadlessInput, type InputProps as HeadlessInputProps } from '@
 import { clsx } from 'clsx'
 
 const dateTypes = ['date', 'datetime-local', 'month', 'time', 'week']
-type DateType = (typeof dateTypes)[number]
+// type DateType = (typeof dateTypes)[number]
 
 export function Input({
   className,
   ...props
 }: {
-  type?: 'email' | 'number' | 'password' | 'search' | 'tel' | 'text' | 'url' | DateType
+  type?: string
 } & HeadlessInputProps) {
   return (
     <span
