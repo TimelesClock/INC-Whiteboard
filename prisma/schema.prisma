@@ -14,24 +14,34 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
-model Whiteboard{
-    id String @id @default(cuid())
-    name String @unique
-    previewUrl String @default("")
-    content Json @default("{}")
-    dateCreated DateTime @default(now())
-    dateUpdated DateTime @default(now())
-    snapshots WhiteboardSnapshot[]
+model Whiteboard {
+    id          String               @id @default(cuid())
+    name        String               @unique
+    previewUrl  String               @default("")
+    content     Json                 @default("{}")
+    dateCreated DateTime             @default(now())
+    dateUpdated DateTime             @default(now())
+    snapshots   WhiteboardSnapshot[]
+    users       WhiteboardUsers[]
 }
 
-model WhiteboardSnapshot{
-    id String @id @default(cuid())
-    name String
+model WhiteboardUsers{
+    id          String               @id @default(cuid())
+    owner       Boolean              @default(false)
     whiteboardId String
-    previewUrl String
-    content Json @default("{}")
-    dateCreated DateTime @default(now())
-    whiteboard Whiteboard @relation(fields: [whiteboardId], references: [id], onDelete: Cascade)
+    userId      String
+    user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+    whiteboard  Whiteboard           @relation(fields: [whiteboardId], references: [id], onDelete: Cascade)
+}
+
+model WhiteboardSnapshot {
+    id           String     @id @default(cuid())
+    name         String
+    whiteboardId String
+    previewUrl   String
+    content      Json       @default("{}")
+    dateCreated  DateTime   @default(now())
+    whiteboard   Whiteboard @relation(fields: [whiteboardId], references: [id], onDelete: Cascade)
 }
 
 // Necessary for Next auth
@@ -42,6 +52,7 @@ model Account {
     provider          String
     providerAccountId String
     refresh_token     String? // @db.Text
+    refresh_token_expires_in Int?
     access_token      String? // @db.Text
     expires_at        Int?
     token_type        String?
@@ -62,13 +73,14 @@ model Session {
 }
 
 model User {
-    id            String    @id @default(cuid())
+    id            String       @id @default(cuid())
     name          String?
-    email         String?   @unique
+    email         String?      @unique
     emailVerified DateTime?
     image         String?
     accounts      Account[]
     sessions      Session[]
+    whiteboards   WhiteboardUsers[]
 }
 
 model VerificationToken {

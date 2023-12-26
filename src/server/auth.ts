@@ -6,6 +6,7 @@ import {
 } from "next-auth";
 
 import { db } from "@/server/db";
+import GitHubProvider from "next-auth/providers/github";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -34,6 +35,14 @@ declare module "next-auth" {
  * @see https://next-auth.js.org/configuration/options
  */
 export const authOptions: NextAuthOptions = {
+  session: {
+    strategy: 'database',
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+    updateAge: 24 * 60 * 60, // 24 hours
+  },
+  pages: {
+    signIn: '/login'
+  },
   callbacks: {
     session: ({ session, user }) => ({
       ...session,
@@ -42,10 +51,18 @@ export const authOptions: NextAuthOptions = {
         id: user.id,
       },
     }),
+    async signIn({ user, account, profile, email, credentials }) {
+      console.log(user, account, profile, email, credentials);
+      return true;
+    }
+
   },
   adapter: PrismaAdapter(db),
   providers: [
-
+    GitHubProvider({
+      clientId: process.env.GITHUB_ID!,
+      clientSecret: process.env.GITHUB_SECRET!
+    })
     /**
      * ...add more providers here.
      *

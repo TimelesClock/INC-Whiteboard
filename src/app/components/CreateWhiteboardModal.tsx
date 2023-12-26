@@ -3,6 +3,7 @@
 import { Fragment, useRef, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { api } from "@/trpc/react";
+import { useRouter } from 'next/navigation';
 
 interface WhiteboardModalProps {
     open: boolean;
@@ -10,12 +11,13 @@ interface WhiteboardModalProps {
 }
 
 const CreateWhiteboardModal: React.FC<WhiteboardModalProps> = ({ open, setOpen }) => {
+    const router = useRouter();
     const cancelButtonRef = useRef(null);
     const [name, setName] = useState("");
 
     const { mutate: createWhiteboard } = api.whiteboard.create.useMutation();
 
-    const util = api.useUtils();
+
 
 
 
@@ -24,7 +26,7 @@ const CreateWhiteboardModal: React.FC<WhiteboardModalProps> = ({ open, setOpen }
         createWhiteboard({ name: name },
             {
                 onSuccess: () => {
-                    void util.whiteboard.getAll.refetch()
+                    router.refresh()
                 }
             });
     }

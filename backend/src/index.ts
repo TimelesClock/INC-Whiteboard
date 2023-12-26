@@ -4,6 +4,7 @@ import { createServer as createHttpsServer } from 'https';
 import { Server, type Socket } from 'socket.io';
 import fs from 'fs';
 import path from 'path';
+import { getSession } from "next-auth/react";
 
 
 const app = express();
@@ -29,6 +30,15 @@ const io = new Server(httpServer, {
   cors: {
     origin: "*",
   },
+});
+
+io.use(async (socket, next) => {
+  const session = await getSession({
+    req: socket.request
+  });
+  console.log(session)
+
+  next();
 });
 
 io.on('connection', (socket: Socket) => {

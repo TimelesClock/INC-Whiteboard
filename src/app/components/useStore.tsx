@@ -92,7 +92,7 @@ export function useSocketIOStore({ userId, userName, roomId, server, whiteboard 
                     })
                     socket.emit('test', { roomId, userId })
                     presenceArray.length = 0
-                }, 50)()
+                }, 50)()    
 
             })
         })
