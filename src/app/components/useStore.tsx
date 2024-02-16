@@ -1,4 +1,4 @@
-import {useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import useSocket from "@/app/utils/useSocket";
 import {
@@ -20,7 +20,7 @@ import {
 } from '@tldraw/tldraw'
 
 import { type JsonObject } from '@prisma/client/runtime/library'
-import {type Socket} from "socket.io-client";
+import { type Socket } from "socket.io-client";
 
 interface SocketIOStoreOptions {
     userId: string
@@ -47,17 +47,17 @@ export function useSocketIOStore({ userId, userName, roomId, server, whiteboard 
     })
 
     const [socket, setSocket] = useState<Socket | null>(null)
-    useEffect(()=>{
+    useEffect(() => {
         const socket = useSocket(server, roomId, userId)
         setSocket(socket)
         return () => {
             socket?.disconnect()
         }
-    },[server,roomId,userId])
+    }, [server, roomId, userId])
 
 
     useEffect(() => {
-  
+
         if (!socket) return
 
         setUserPreferences({ id: userId, name: userName });
@@ -86,21 +86,19 @@ export function useSocketIOStore({ userId, userName, roomId, server, whiteboard 
                 if (!presence) return
                 presenceArray.push(presence)
                 throttle(() => {
-
-                    presenceArray.forEach((presence) => {
-                        socket.emit('presence', { roomId, userId, presence })
-                    })
-                    socket.emit('test', { roomId, userId })
+                    if (presenceArray.length === 0) return
+                    socket.emit('presence', { roomId, userId, presence: presenceArray })
                     presenceArray.length = 0
-                }, 50)()    
+                }, 50)()
 
             })
         })
 
-        socket.on('presence', (data: JsonObject) => {
-
-            store.mergeRemoteChanges(() => {
-                store.put([data.presence as unknown as TLRecord])
+        socket.on('presence', (data: { presence: TLRecord[] }) => {
+            data.presence.forEach((data) => {
+                store.mergeRemoteChanges(() => {
+                    store.put([data])
+                })
             })
         }
         )
@@ -124,27 +122,29 @@ export function useSocketIOStore({ userId, userName, roomId, server, whiteboard 
             console.log(data)
         })
 
-        const handleUpdate = (data: JsonObject) => {
+        const handleUpdate = (data: { clientId: string, update: HistoryEntry<TLRecord>[] }) => {
             try {
-                if (data.clientId === socket.id) return
+                if (data.clientId === socket.id) return;
 
-                store.mergeRemoteChanges(() => {
-                    const { changes: { added, updated, removed } } = data.update as unknown as HistoryEntry<TLRecord>
-                    for (const record of Object.values(added)) {
-                        store.put([record])
-                    }
-                    for (const [, to] of Object.values(updated)) {
-                        store.put([to])
-                    }
-                    for (const record of Object.values(removed)) {
-                        store.remove([record.id])
-                    }
-                })
+                data.update.forEach((update: HistoryEntry<TLRecord>) => {
+                    store.mergeRemoteChanges(() => {
+                        const { changes: { added, updated, removed } } = update;
+                        for (const record of Object.values(added)) {
+                            store.put([record]);
+                        }
+                        for (const [, to] of Object.values(updated)) {
+                            store.put([to]);
+                        }
+                        for (const record of Object.values(removed)) {
+                            store.remove([record.id]);
+                        }
+                    });
+                });
 
             } catch (e) {
-                console.error(e)
+                console.error(e);
             }
-        }
+        };
 
         socket.on('connect', handleConnect)
         socket.on('disconnect', () => {
@@ -158,9 +158,9 @@ export function useSocketIOStore({ userId, userName, roomId, server, whiteboard 
         const pendingChanges: HistoryEntry<TLRecord>[] = []
         const sendChanges = throttle(() => {
             if (pendingChanges.length === 0) return
-            pendingChanges.forEach((change) => {
-                socket.emit('update', { clientId: socket.id, type: 'update', update: change, roomId });
-            })
+
+            socket.emit('update', { clientId: socket.id, type: 'update', update: pendingChanges, roomId });
+
 
             pendingChanges.length = 0
         }, 50)
@@ -180,7 +180,7 @@ export function useSocketIOStore({ userId, userName, roomId, server, whiteboard 
             socket.off('update', handleUpdate)
             socket.off('presence')
         }
-    }, [socket,store])
+    }, [socket, store])
 
     return storeWithStatus
 }

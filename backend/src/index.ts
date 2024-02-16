@@ -32,6 +32,7 @@ const io = new Server(httpServer, {
   },
 });
 
+// eslint-disable-next-line @typescript-eslint/no-misused-promises
 io.use(async (socket, next) => {
   const session = await getSession({
     req: socket.request

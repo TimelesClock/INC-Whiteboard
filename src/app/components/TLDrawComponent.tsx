@@ -32,7 +32,7 @@ export function TLDrawComponent({ roomId, userId, whiteboard }: TLDrawComponentO
 		userId: userId,
 		userName: userId,
 		roomId: roomId,
-		server: process.env.NODE_ENV === "development" ? "http://localhost:3001" : process.env.NEXT_PUBLIC_SOCKET_URL!,
+		server: process.env.NEXT_PUBLIC_SOCKET_URL!,
 		whiteboard: whiteboard
 	})
 
